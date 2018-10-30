@@ -27,7 +27,7 @@ epochs = 20
 
 
 def train_model(train_file='data/mnist.pkl',
-                job_dir='./tmp/mnist_mlp', **args):
+                job_dir='./job_dir', **args):
     # set the logging path for ML Engine logging to Storage bucket
     logs_path = job_dir + '/logs/' + datetime.now().isoformat()
     print('Using logs_path located at {}'.format(logs_path))
