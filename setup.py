@@ -6,10 +6,9 @@ setup(name='mnist_mlp',
       packages=find_packages(),
       include_package_data=True,
       description='MNIST MLP keras model on Cloud ML Engine',
-      author='Your Name',
-      author_email='you@example.com',
       license='MIT',
       install_requires=[
           'keras',
-          'h5py'],
+          'h5py',
+          'pillow'],
       zip_safe=False)

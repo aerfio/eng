@@ -5,4 +5,4 @@ gcloud ml-engine local train \
   --module-name trainer.mnist_mlp \
   --package-path ./trainer \
   -- \
-  --train-file ./data/mnist.pkl
+  --train-file ./inzynierka
