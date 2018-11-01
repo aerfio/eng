@@ -2,7 +2,8 @@
 export JOB_DIR=./job_dir
 gcloud ml-engine local train \
   --job-dir $JOB_DIR \
-  --module-name trainer.mnist_mlp \
+  --module-name trainer.inria \
   --package-path ./trainer \
   -- \
-  --train-file ./inzynierka
+  --train-file ./inzynierka \
+  --cache true

@@ -9,35 +9,41 @@ ML Engine parameters.
 from __future__ import print_function
 
 import argparse
+import os
 import pickle  # for handling the new data source
+import sys
+from datetime import datetime  # for filename conventions
+
 import h5py  # for saving the model
 import keras
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from datetime import datetime  # for filename conventions
+from keras.callbacks import EarlyStopping, ReduceLROnPlateau
+from keras.layers import (Activation, Conv2D, Dense, Dropout, Flatten,
+                          MaxPooling2D)
 from keras.models import Sequential
-from keras.layers import Conv2D, MaxPooling2D, Activation, Dropout, Flatten, Dense
-from tensorflow.keras import backend as K
 from keras.optimizers import RMSprop
+from tensorflow.keras import backend as K
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.python.lib.io import file_io  # for better file I/O
-import sys
-import os
+
 os.system('gsutil cp -r gs://aerfio-bucket/data/inzynierka .')
 
 batch_size = 32
-epochs = 1
-img_width, img_height = 256+64, 256+64
+epochs = 10
+img_width, img_height = 256, 256
 steps_per_epoch = 1800 // batch_size
 validation_steps = 740 // batch_size
 # Create a function to allow for different training data and other options
 
 
 def train_model(train_file='inzynierka',
-                job_dir='./job_dir', **args):
+                job_dir='./job_dir',
+                cache=False, **args):
+    if (not cache):
+        os.system('gsutil cp -r gs://aerfio-bucket/data/inzynierka .')
+
     # set the logging path for ML Engine logging to Storage bucket
     logs_path = job_dir + '/logs/' + datetime.now().isoformat()
     print('Using logs_path located at {}'.format(logs_path))
-
-    print(train_file, job_dir)
     train_data_dir = train_file+'/train'
     validation_data_dir = train_file+'/validation'
 
@@ -47,11 +53,7 @@ def train_model(train_file='inzynierka',
     else:
         input_shape = (img_width, img_height, 3)
     model = Sequential()
-    model.add(Conv2D(32, (7, 7), input_shape=input_shape))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-
-    model.add(Conv2D(32, (5, 5)))
+    model.add(Conv2D(32, (3, 3), input_shape=input_shape))
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
@@ -59,10 +61,14 @@ def train_model(train_file='inzynierka',
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
+    model.add(Conv2D(64, (3, 3)))
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+
     model.add(Flatten())
     model.add(Dense(64))
     model.add(Activation('relu'))
-    model.add(Dropout(0.3))
+    model.add(Dropout(0.5))
     model.add(Dense(1))
     model.add(Activation('sigmoid'))
 
@@ -70,10 +76,8 @@ def train_model(train_file='inzynierka',
                   optimizer='rmsprop',
                   metrics=['accuracy'])
     model.summary()
-    train_datagen = ImageDataGenerator(
-        rescale=1. / 255,
-    )
 
+    train_datagen = ImageDataGenerator(rescale=1. / 255)
     test_datagen = ImageDataGenerator(rescale=1. / 255)
 
     train_generator = train_datagen.flow_from_directory(
@@ -88,15 +92,17 @@ def train_model(train_file='inzynierka',
         target_size=(img_width, img_height),
         batch_size=batch_size,
         class_mode='binary')
-
+    ear = EarlyStopping(monitor='acc', min_delta=0.01, patience=4,)
+    ron = ReduceLROnPlateau(monitor='acc', factor=0.2, patience=4,)
     model.fit_generator(
         train_generator,
+        workers=4,
         epochs=epochs,
+        callbacks=[ear, ron],
         validation_data=validation_generator,
         steps_per_epoch=steps_per_epoch,
         validation_steps=validation_steps,
     )
-    print(len(validation_generator))
     score = model.evaluate_generator(
         validation_generator, verbose=1, steps=len(validation_generator),)
     print('Test loss:', score[0])
@@ -119,6 +125,9 @@ if __name__ == '__main__':
     parser.add_argument(
         '--job-dir',
         help='Cloud storage bucket to export the model and store temp files')
+    parser.add_argument(
+        '--cache',
+        help='use cached pics')
     args = parser.parse_args()
     arguments = args.__dict__
     train_model(**arguments)

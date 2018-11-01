@@ -5,7 +5,7 @@ setup(name='mnist_mlp',
       version='1.0',
       packages=find_packages(),
       include_package_data=True,
-      description='MNIST MLP keras model on Cloud ML Engine',
+      description='Inria Keras model on Cloud ML Engine',
       license='MIT',
       install_requires=[
           'keras',
