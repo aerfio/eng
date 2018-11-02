@@ -13,9 +13,9 @@ if [ "$1" != "" ]; then
         --region $REGION \
         -- \
         --train-file ./inzynierka
-
-    echo "Paste this into console in google cloud"
-    echo "tensorboard --logdir=$JOB_DIR/logs --port=8080"
+git add .
+git commit -m "$1"
+git push
 else
     echo "Provide a name for a job!"
 fi

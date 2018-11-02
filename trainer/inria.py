@@ -25,10 +25,9 @@ from tensorflow.keras import backend as K
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.python.lib.io import file_io  # for better file I/O
 
-os.system('gsutil cp -r gs://aerfio-bucket/data/inzynierka .')
 
 batch_size = 32
-epochs = 10
+epochs = 15
 img_width, img_height = 256, 256
 steps_per_epoch = 1800 // batch_size
 validation_steps = 740 // batch_size
@@ -38,8 +37,7 @@ validation_steps = 740 // batch_size
 def train_model(train_file='inzynierka',
                 job_dir='./job_dir',
                 cache=False, **args):
-    if (not cache):
-        os.system('gsutil cp -r gs://aerfio-bucket/data/inzynierka .')
+    os.system('gsutil cp -r gs://aerfio-bucket/data/inzynierka .')
 
     # set the logging path for ML Engine logging to Storage bucket
     logs_path = job_dir + '/logs/' + datetime.now().isoformat()
@@ -53,11 +51,14 @@ def train_model(train_file='inzynierka',
     else:
         input_shape = (img_width, img_height, 3)
     model = Sequential()
-    model.add(Conv2D(32, (3, 3), input_shape=input_shape))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Conv2D(256, (16, 16), input_shape=input_shape, activation='relu'))
+    model.add(MaxPooling2D(pool_size=(5, 5)))
 
-    model.add(Conv2D(32, (3, 3)))
+    model.add(Conv2D(192, (12, 12)))
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(4, 4)))
+
+    model.add(Conv2D(126, (7, 7)))
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
@@ -71,9 +72,8 @@ def train_model(train_file='inzynierka',
     model.add(Dropout(0.5))
     model.add(Dense(1))
     model.add(Activation('sigmoid'))
-
     model.compile(loss='binary_crossentropy',
-                  optimizer='rmsprop',
+                  optimizer='adam',
                   metrics=['accuracy'])
     model.summary()
 
@@ -92,7 +92,7 @@ def train_model(train_file='inzynierka',
         target_size=(img_width, img_height),
         batch_size=batch_size,
         class_mode='binary')
-    ear = EarlyStopping(monitor='acc', min_delta=0.01, patience=4,)
+    ear = EarlyStopping(monitor='acc', min_delta=1, patience=4,)
     ron = ReduceLROnPlateau(monitor='acc', factor=0.2, patience=4,)
     model.fit_generator(
         train_generator,
