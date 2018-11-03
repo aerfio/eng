@@ -18,7 +18,7 @@ import h5py  # for saving the model
 import keras
 from keras.callbacks import EarlyStopping, ReduceLROnPlateau
 from keras.layers import (Activation, Conv2D, Dense, Dropout, Flatten,
-                          MaxPooling2D)
+                          MaxPooling2D, BatchNormalization)
 from keras.models import Sequential
 from keras.optimizers import RMSprop
 from tensorflow.keras import backend as K
@@ -51,29 +51,30 @@ def train_model(train_file='inzynierka',
     else:
         input_shape = (img_width, img_height, 3)
     model = Sequential()
-    model.add(Conv2D(256, (16, 16), input_shape=input_shape, activation='relu'))
-    model.add(MaxPooling2D(pool_size=(5, 5)))
+    model.add(Conv2D(32, (3, 3), input_shape=input_shape))
+    model.add(Activation('selu'))
+    model.add(BatchNormalization())
+    model.add(MaxPooling2D(pool_size=(2, 2)))
 
-    model.add(Conv2D(192, (12, 12)))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(4, 4)))
-
-    model.add(Conv2D(126, (7, 7)))
-    model.add(Activation('relu'))
+    model.add(Conv2D(32, (3, 3)))
+    model.add(Activation('selu'))
+    model.add(BatchNormalization())
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
     model.add(Conv2D(64, (3, 3)))
-    model.add(Activation('relu'))
+    model.add(Activation('selu'))
+    model.add(BatchNormalization())
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
     model.add(Flatten())
     model.add(Dense(64))
-    model.add(Activation('relu'))
+    model.add(Activation('selu'))
     model.add(Dropout(0.5))
     model.add(Dense(1))
     model.add(Activation('sigmoid'))
+
     model.compile(loss='binary_crossentropy',
-                  optimizer='adam',
+                  optimizer='rmsprop',
                   metrics=['accuracy'])
     model.summary()
 
