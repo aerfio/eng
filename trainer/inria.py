@@ -51,30 +51,25 @@ def train_model(train_file='inzynierka',
     else:
         input_shape = (img_width, img_height, 3)
     model = Sequential()
-    model.add(Conv2D(64, (7, 7), input_shape=input_shape))
+    model.add(Conv2D(32, (7, 7), input_shape=input_shape))
     model.add(Activation('selu'))
     model.add(BatchNormalization())
-    model.add(MaxPooling2D(pool_size=(3, 3)))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
 
-    model.add(Conv2D(64, (5, 5)))
+    model.add(Conv2D(32, (5, 5)))
     model.add(Activation('selu'))
     model.add(BatchNormalization())
-    model.add(MaxPooling2D(pool_size=(3, 3)))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
 
-    model.add(Conv2D(64, (5, 5)))
+    model.add(Conv2D(32, (5, 5)))
     model.add(Activation('selu'))
     model.add(BatchNormalization())
-    model.add(MaxPooling2D(pool_size=(3, 3)))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
 
-    model.add(Conv2D(64, (5, 5)))
+    model.add(Conv2D(64, (3, 3)))
     model.add(Activation('selu'))
     model.add(BatchNormalization())
-    model.add(MaxPooling2D(pool_size=(3, 3)))
-
-    model.add(Conv2D(128, (5, 5)))
-    model.add(Activation('selu'))
-    model.add(BatchNormalization())
-    model.add(MaxPooling2D(pool_size=(3, 3)))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
 
     model.add(Flatten())
     model.add(Dense(64))
