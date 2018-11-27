@@ -61,11 +61,6 @@ def train_model(train_file='inzynierka',
     model.add(BatchNormalization())
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
-    model.add(Conv2D(64, (5, 5)))
-    model.add(Activation('selu'))
-    model.add(BatchNormalization())
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-
     model.add(Conv2D(128, (5, 5)))
     model.add(Activation('selu'))
     model.add(BatchNormalization())
